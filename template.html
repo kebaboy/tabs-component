@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accordion tabs</title>
+    <style>
+        :root {
+            --white: #fff;
+            --gray: #a9a9a9;
+            --primary-color: #fdcd5c;
+            --base-background: #dee;
+
+            --base-font-size: 16px;
+            --title-font-size: 18px;
+        }
+        * {
+            box-sizing: border-box;
+            font-family:  Verdana, Geneva, Tahoma, sans-serif;
+        }
+        body {
+            background-color: var(--gray);
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        h3 {
+            font-size: 18px;
+            line-height: 21px;
+            margin: 0;
+        }
+        span {
+            font-size: 16px;
+            line-height: 18px;
+        }
+        /* SOLUTION */
+        .accordion-tabs {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 20px;
+        }
+        .tab-wrapper_before-active {
+            .tab-outer-border {
+                border-bottom-right-radius: 16px; 
+            }
+        }
+        .tab-wrapper_after-active {
+            .tab-outer-border {
+                border-bottom-left-radius: 16px;
+            }
+        }
+        .tab {
+            background-color: var(--white);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+        }
+        .tab.active {
+            .tab-outer-angles {
+                left: 0px;
+                right: 0px;
+            }
+            .tab-outer-border {
+                background-color: var(--white);
+            }
+            .tab__button svg {
+                transform: rotate(180deg);
+            }
+        }
+        
+        .tab__content {
+            position: relative;
+            z-index: 1;
+            flex: 0 0 100%;
+            border-radius: 16px;
+            padding: 20px;
+            background-color: var(--white);
+        }
+        .tab__content_no-top-borders {
+            border-top-left-radius: 0px;
+            border-top-right-radius: 0px;
+        }
+        .tab__content_left-top-border {
+            border-top-right-radius: 0px;
+        }
+        .tab__content_right-top-border {
+            border-top-left-radius: 0px;
+        }
+        .tab-outer-angles {
+            position: absolute; 
+            display: flex; 
+            min-height: 100%; 
+            left: -20px; 
+            right: -20px; 
+            background-color: var(--white); 
+            z-index: -1;
+        }
+        .tab-outer-border {
+            width: 100%; 
+            background-color: var(--gray);
+        }
+        .tab__description {
+            display: none;
+        }
+        .tab__button {
+            padding: 10px;
+            background-color: var(--primary-color);
+            border-radius: 16px;
+            cursor: pointer;
+            border: none;
+            line-height: 15px;
+        }
+    </style>
+</head>
+<body>
+    <template>
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="9" viewBox="0 0 14 9" fill="none">
+            <path d="M1 1.5L7 7.5L13 1.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+    </template> 
+    <div class="root">
+        <!-- SOLUTION -->
+    </div>
+    
+    <script>
+        const example = window.taskData || {
+            tabs: [{
+                title: 'Title 1',
+                description: 'Article 1Article 1Article 1Article 1Article 1Article 1Article 1Article 1Article 1Article 1Article 1Article 1Article 1Article 1',
+                },{
+                    title: 'Title 2',
+                    description: 'Article 2',
+                    
+                },{
+                    title: 'Title 3',
+                    description: 'Article 3',
+                    
+                },{
+                    title: 'Title 4',
+                    description: 'Article 4',
+                },
+                {
+                    title: 'Title 5',
+                    description: 'Article 4',
+                    active: true,
+                },
+                {
+                    title: 'Title 6',
+                    description: 'Article 4',
+                },{
+                    title: 'Title 6',
+                    description: 'Article 4',
+                }],
+                minWidth: 300,
+        }
+
+
+        const root = document.querySelector(".root");
+        let tabContainers = [];
+        let wrapIndices = [];
+
+        function switchTab() {
+            const activeTab = event.target.closest(".tab");
+            const tabsContainer = activeTab.closest(".accordion-tabs");
+            if (activeTab.classList.contains('.active')) return;
+
+            tabContainers.forEach((tab, index) => {
+                if (tab.classList.contains('active')) {
+                    tab.classList.remove('active');
+
+                    if (tabContainers[index - 1]) {
+                        tabContainers[index - 1].classList.remove("tab-wrapper_before-active");
+                    }
+                    if (tabContainers[index + 1]) {
+                        tabContainers[index + 1].classList.remove("tab-wrapper_after-active");
+                    }
+
+                    tabsContainer.querySelector("#tab-content").remove();
+                }
+        
+            });
+
+            activeTab.classList.add("active");
+            const activeTabIndex = tabContainers.indexOf(activeTab);       
+
+            const tabContent = createTabContent(activeTab.querySelector(".tab__description").textContent);
+
+            console.log(activeTab, activeTabIndex);
+
+            for (let i = 0; i < wrapIndices.length; i++) {
+
+                if (activeTabIndex > wrapIndices[wrapIndices.length - 1]) break;
+                
+                if (activeTabIndex <= wrapIndices[i]) {
+                    console.log("inserted after ", wrapIndices[i]);
+                    if (activeTabIndex === wrapIndices[i]) {
+                        console.log(wrapIndices[i - 1], activeTabIndex - wrapIndices[i - 1])
+                        if (activeTabIndex === 0 || activeTabIndex - wrapIndices[i - 1] === 1) {
+                            console.log('singular in row');
+                            tabContent.classList.add("tab__content_no-top-borders");
+                            
+                        } else {
+                            console.log('last in row');
+                            tabContent.classList.add("tab__content_left-top-border");
+                            if (tabContainers[activeTabIndex - 1]) {
+                                tabContainers[activeTabIndex - 1].classList.add("tab-wrapper_before-active");
+                            }
+                        }
+                    } else if (activeTabIndex === 0 || activeTabIndex - wrapIndices[i - 1] === 1) {
+                        console.log('first in row');
+                        tabContent.classList.add("tab__content_right-top-border");
+                        if (tabContainers[activeTabIndex + 1]) {
+                            tabContainers[activeTabIndex + 1].classList.add("tab-wrapper_after-active");
+                        }
+                    } else if (activeTabIndex !== tabContainers.length - 1) {
+                        console.log('between others');
+                        if (tabContainers[activeTabIndex - 1]) {
+                            tabContainers[activeTabIndex - 1].classList.add("tab-wrapper_before-active");
+                        }
+                        if (tabContainers[activeTabIndex + 1]) {
+                            tabContainers[activeTabIndex + 1].classList.add("tab-wrapper_after-active");
+                        }
+                    }
+                    tabContainers[wrapIndices[i]].after(tabContent);
+                    return;
+                }   
+            }
+
+            console.log("inserted after end");
+
+            const lastWrapIndex = wrapIndices[wrapIndices.length - 1];
+            if (tabContainers.length - 1 - lastWrapIndex === 1) {
+                console.log('singular in row');
+                tabContent.classList.add("tab__content_no-top-borders");
+            } else if (activeTabIndex === tabContainers.length - 1) {
+                console.log('last in row');
+                tabContent.classList.add("tab__content_left-top-border");
+                if (tabContainers[activeTabIndex - 1]) {
+                    tabContainers[activeTabIndex - 1].classList.add("tab-wrapper_before-active");
+                }
+            } else if (activeTabIndex === lastWrapIndex + 1 || activeTabIndex === 0) {
+                console.log('first in row');
+                tabContent.classList.add("tab__content_right-top-border");
+                if (tabContainers[activeTabIndex + 1]) {
+                    tabContainers[activeTabIndex + 1].classList.add("tab-wrapper_after-active");
+                }
+            } else {
+                console.log('between others');
+                if (tabContainers[activeTabIndex - 1]) {
+                    tabContainers[activeTabIndex - 1].classList.add("tab-wrapper_before-active");
+                }
+                if (tabContainers[activeTabIndex + 1]) {
+                    tabContainers[activeTabIndex + 1].classList.add("tab-wrapper_after-active");
+                }
+            }
+            tabsContainer.append(tabContent);
+        }
+
+        function createTabContent(tabContent) {
+            const tabContentElement = document.createElement('div');
+            tabContentElement.classList.add("tab__content");
+            tabContentElement.setAttribute('id', 'tab-content');
+            tabContentElement.textContent = tabContent;
+            return tabContentElement;
+        }
+
+        function createTabElement({title, description, active}, minWidth) {
+            const tabElement = document.createElement('div');
+            tabElement.classList.add("tab");
+            tabElement.style.flex = `1 0 ${minWidth}` + 'px';
+            
+            const tabOuter = document.createElement("div");
+            tabOuter.classList.add("tab-outer-angles");
+            const angles = document.createElement("div");
+            angles.classList.add("tab-outer-border");
+            tabOuter.append(angles);
+            tabElement.append(tabOuter)
+            
+            const tabTitle = document.createElement('h3');
+            tabTitle.textContent = `${title}`;
+            tabElement.append(tabTitle);
+
+            const tabButton = document.createElement('button');
+            tabButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="9" viewBox="0 0 14 9" fill="none">
+            <path d="M1 1.5L7 7.5L13 1.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>`;
+            tabButton.classList.add("tab__button");
+            tabButton.addEventListener('click', switchTab);
+            tabElement.append(tabButton);
+
+            const tabDescription = document.createElement('span');
+            tabDescription.textContent = `${description}`;
+            tabDescription.classList.add('tab__description');
+            tabElement.append(tabDescription);
+
+            return tabElement;
+        }
+
+        function createAccordionTabs(tabs, minWidth) {
+            //SOLUTION
+            const tabsContainer = document.createElement("div");
+            tabsContainer.classList.add("accordion-tabs");
+
+            let activeTabIndex;
+            tabs.forEach((tab, i) => {
+                tabsContainer.append(createTabElement(tab, minWidth));
+                if (tab["active"] == true) activeTabIndex = i;
+            });
+            root.append(tabsContainer);
+            tabContainers = Array.from(tabsContainer.children);
+    
+            const containerWidth = tabsContainer.offsetWidth;
+            let totalWidth = 0;
+            for (let i = 0; i < tabContainers.length; i++) {
+                totalWidth += tabContainers[i].offsetWidth;
+                if (totalWidth > containerWidth) {
+                    wrapIndices.push(i-1);
+                    totalWidth = tabContainers[i].offsetWidth;
+                }
+            }
+
+            if (wrapIndices.length > 0) {
+                console.log('Wrapping will occur after elements number:', wrapIndices.join(', '));
+            } else {
+                console.log('No wrapping will occur.');
+            }
+            tabContainers[activeTabIndex].querySelector(".tab__button").click();
+            console.log(tabContainers);
+        }
+
+        createAccordionTabs(example.tabs, example.minWidth);
+    </script>
+</body>
+</html>
